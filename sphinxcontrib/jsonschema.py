@@ -12,7 +12,7 @@ import jsonref
 from six import string_types
 from docutils import nodes
 from docutils.statemachine import ViewList
-from docutils.parsers.rst import Directive
+from docutils.parsers.rst import directives, Directive
 
 if sys.version_info < (2, 7):
     import simplejson as json
@@ -25,8 +25,15 @@ else:
 class JSONSchemaDirective(Directive):
     has_content = True
     required_arguments = 1
+    option_spec = {'include': directives.unchanged}
 
     def run(self):
+        include = self.options.get('include')
+        if include:
+            include = include.split(',')
+        else:
+            include = []
+
         env = self.state.document.settings.env
         try:
             if self.arguments and self.content:
@@ -62,6 +69,8 @@ class JSONSchemaDirective(Directive):
         tbody = nodes.tbody()
         tgroup += tbody
         for prop in schema:
+            if include and not prop.name.startswith(tuple(include)):
+                continue
             row = nodes.row()
             row += self.cell(prop.name)
             if prop.required:
