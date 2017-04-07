@@ -360,7 +360,7 @@ class Object(JSONData):
 
     def get_properties(self):
         if self.name:
-            prefix = self.name + '.'
+            prefix = self.name + '/'
         else:
             prefix = ''
         required = self.attributes.get('required', [])
