@@ -240,7 +240,7 @@ class TestJsonSchema(unittest.TestCase):
         props = list(schema)
         self.assertEqual(len(props), 1)
 
-        self.assertEqual(props[0].name, '[]')
+        self.assertEqual(props[0].name, None)
         self.assertEqual(props[0].type, 'array[number]')
 
     def test_list_object_properties2(self):
@@ -256,7 +256,7 @@ class TestJsonSchema(unittest.TestCase):
         props = list(schema)
         self.assertEqual(len(props), 1)
 
-        self.assertEqual(props[0].name, '[]')
+        self.assertEqual(props[0].name, None)
         self.assertEqual(props[0].type, 'array[Human]')
 
     def test_list_object_properties3(self):
@@ -272,7 +272,7 @@ class TestJsonSchema(unittest.TestCase):
         props = list(schema)
         self.assertEqual(len(props), 4)
 
-        self.assertEqual(props[0].name, '[]')
+        self.assertEqual(props[0].name, None)
         self.assertEqual(props[0].type, 'array[number,string,number]')
 
         self.assertEqual(props[1].name, '[0]')
@@ -303,7 +303,7 @@ class TestJsonSchema(unittest.TestCase):
         props = list(schema)
         self.assertEqual(len(props), 6)
 
-        self.assertEqual(props[0].name, '[]')
+        self.assertEqual(props[0].name, None)
         self.assertEqual(props[0].type, 'array[number,string,number,object+]')
 
         self.assertEqual(props[1].name, '[0]')

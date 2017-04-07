@@ -257,13 +257,6 @@ class String(JSONData):
 class Array(JSONData):
     type = "array"
 
-    def __init__(self, name, attributes, required=False):
-        if name:
-            name += '[]'
-        else:
-            name = '[]'
-        super(Array, self).__init__(name, attributes, required)
-
     @property
     def validations(self):
         rules = super(Array, self).validations
@@ -288,7 +281,7 @@ class Array(JSONData):
             item = JSONSchema.instantiate(self.name, self.items)
 
             # array object itself
-            array = JSONSchema.instantiate(self.name[:-2], self.attributes)
+            array = JSONSchema.instantiate(self.name, self.attributes)
             array.type = 'array[%s]' % item.get_typename()
             yield array
 
@@ -300,19 +293,19 @@ class Array(JSONData):
             items = []
             types = []
             for i, item in enumerate(self.items):
-                name = '%s[%d]' % (self.name[:-2], i)
+                name = '%s[%d]' % (self.name or '', i)
                 items.append(JSONSchema.instantiate(name, item))
                 types.append(items[-1].get_typename())
 
             if isinstance(self.additionalItems, dict):
-                name = '%s[%d+]' % (self.name[:-2], len(items))
+                name = '%s[%d+]' % (self.name or '', len(items))
                 additional = JSONSchema.instantiate(name, self.additionalItems)
                 types.append(additional.get_typename() + '+')
             else:
                 additional = None
 
             # array object itself
-            array = JSONSchema.instantiate(self.name[:-2], self.attributes)
+            array = JSONSchema.instantiate(self.name, self.attributes)
             array.type = 'array[%s]' % ','.join(types)
             yield array
 
