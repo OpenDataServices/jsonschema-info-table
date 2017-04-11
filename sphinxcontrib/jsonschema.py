@@ -262,7 +262,6 @@ class String(JSONData):
             rules.append('It must be formatted as %s' % self.format)
         return rules
 
-
 class Array(JSONData):
     type = "array"
 
@@ -287,7 +286,7 @@ class Array(JSONData):
 
     def __iter__(self):
         if isinstance(self.items, dict):
-            item = JSONSchema.instantiate(self.name, self.items)
+            item = JSONSchema.instantiate(self.name + '/0', self.items)
 
             # array object itself
             array = JSONSchema.instantiate(self.name, self.attributes)
@@ -363,7 +362,7 @@ class Object(JSONData):
         for prop in self.get_properties():
             yield prop
 
-            if prop.type == "object":
+            if prop.type in ["object", "array"]:
                 for subprop in prop:
                     yield subprop
 
