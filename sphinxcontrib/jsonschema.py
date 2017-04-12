@@ -25,7 +25,10 @@ else:
 class JSONSchemaDirective(Directive):
     has_content = True
     required_arguments = 1
-    option_spec = {'include': directives.unchanged}
+    option_spec = {
+        'include': directives.unchanged,
+        'collapse': directives.unchanged
+    }
 
     def run(self):
         include = self.options.get('include')
@@ -33,6 +36,11 @@ class JSONSchemaDirective(Directive):
             include = include.split(',')
         else:
             include = []
+        collapse = self.options.get('collapse')
+        if collapse:
+            collapse = collapse.split(',')
+        else:
+            collapse = []
 
         env = self.state.document.settings.env
         try:
@@ -70,6 +78,8 @@ class JSONSchemaDirective(Directive):
         tgroup += tbody
         for prop in schema:
             if include and not prop.name.startswith(tuple(include)):
+                continue
+            if prop.name.startswith(tuple(collapse)) and prop.name not in collapse:
                 continue
             row = nodes.row()
             row += self.cell(prop.name)
