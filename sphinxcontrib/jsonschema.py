@@ -61,8 +61,8 @@ class JSONSchemaDirective(Directive):
         except ValueError as exc:
             raise self.error('Failed to parse JSON Schema: %s' % exc)
 
-        headers = ['Name', 'Type', 'Description', 'Validations']
-        widths = [1, 1, 1, 2]
+        headers = ['Name', 'Type', 'Description']
+        widths = [1, 1, 1]
         tgroup = nodes.tgroup(cols=len(headers))
         for width in widths:
             tgroup += nodes.colspec(colwidth=width)
@@ -88,7 +88,6 @@ class JSONSchemaDirective(Directive):
             else:
                 row += self.cell(prop.type)
             row += self.cell(prop.description or '')
-            row += self.cell('\n'.join(('* %s' % v for v in prop.validations)))
             tbody += row
 
         return [table]
