@@ -370,7 +370,8 @@ class Object(JSONData):
 
     def __iter__(self):
         for prop in self.get_properties():
-            yield prop
+            if prop.type != 'array':
+                yield prop
 
             if prop.type in ["object", "array"]:
                 for subprop in prop:
