@@ -61,8 +61,8 @@ class JSONSchemaDirective(Directive):
         except ValueError as exc:
             raise self.error('Failed to parse JSON Schema: %s' % exc)
 
-        headers = ['Name', 'Title', 'Type', 'Description']
-        widths = [1, 1, 1, 1]
+        headers = ['Title', 'Type', 'Description']
+        widths = [1, 1, 2]
         tgroup = nodes.tgroup(cols=len(headers))
         for width in widths:
             tgroup += nodes.colspec(colwidth=width)
@@ -82,7 +82,9 @@ class JSONSchemaDirective(Directive):
             if prop.name.startswith(tuple(collapse)) and prop.name not in collapse:
                 continue
             row = nodes.row()
-            row += self.cell(prop.name)
+            row += self.cell(prop.name, morecols=2)
+            tbody += row
+            row = nodes.row()
             row += self.cell(prop.title)
             if prop.required:
                 row += self.cell(prop.type + " (required)")
@@ -93,8 +95,8 @@ class JSONSchemaDirective(Directive):
 
         return [table]
 
-    def cell(self, text):
-        entry = nodes.entry()
+    def cell(self, text, morecols=0):
+        entry = nodes.entry(morecols=morecols)
         if not isinstance(text, string_types):
             text = str(text)
         viewlist = ViewList(text.split('\n'), source=text)
