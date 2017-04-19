@@ -7,6 +7,7 @@
 """
 import io
 import os
+import re
 import sys
 import jsonref
 from six import string_types
@@ -99,6 +100,8 @@ class JSONSchemaDirective(Directive):
         entry = nodes.entry(morecols=morecols)
         if not isinstance(text, string_types):
             text = str(text)
+        # Regex to replace markdown links for reStructuredText ones
+        text = re.sub(r'\[([^\[]+)\]\(([^\)]+)\)', r'`\1 <\2>`__', text)
         viewlist = ViewList(text.split('\n'), source=text)
         self.state.nested_parse(viewlist, 0, entry)
         return entry
