@@ -1,4 +1,5 @@
 """
+
     sphinxcontrib.jsonschema
     ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -162,14 +163,14 @@ class JSONSchema(object):
             return cls.load(reader)
 
     @classmethod
-    def instantiate(cls, name, obj, required=False):
-        return get_class_for(obj)(name, obj, required)
+    def instantiate(cls, name, obj, required=False, parent=None):
+        return get_class_for(obj)(name, obj, required, parent)
 
 
 def Union(types):
     class Union(JSONData):
-        def __init__(self, name, attributes, required=False):
-            super(Union, self).__init__(name, attributes, required)
+        def __init__(self, name, attributes, required=False, parent=None):
+            super(Union, self).__init__(name, attributes, required, parent)
             self.elements = []
             for type in types:
                 elem = get_class_for(type)(name, attributes, required)
@@ -191,10 +192,11 @@ def Union(types):
 
 
 class JSONData(object):
-    def __init__(self, name, attributes, required=False):
+    def __init__(self, name, attributes, required=False, parent=None):
         self.name = name
         self.attributes = attributes
         self.required = required
+        self.parent = parent
 
     def __getattr__(self, name):
         if isinstance(self.attributes, dict):
@@ -230,6 +232,18 @@ class JSONData(object):
         if 'definitions' in self.attributes:
             pass
         return rules
+
+    @property
+    def full_title(self):
+        # Check for self.parent.name here so we don't get a title for the root
+        # element
+        if self.parent and self.parent.name:
+            if self.parent.full_title and self.title:
+                return self.parent.full_title + ':' + self.title
+            else:
+                return None
+        else:
+            return self.title
 
 
 class Null(JSONData):
@@ -297,7 +311,7 @@ class Array(JSONData):
             if self.uniqueItems:
                 rules.append('Its elements must be unique')
         if isinstance(self.items, dict):
-            item = JSONSchema.instantiate(self.name, self.items)
+            item = JSONSchema.instantiate(self.name, self.items, parent=self)
             if item.type not in ('array', 'object'):
                 rules.extend(item.validations)
 
@@ -305,10 +319,10 @@ class Array(JSONData):
 
     def __iter__(self):
         if isinstance(self.items, dict):
-            item = JSONSchema.instantiate(self.name + '/0', self.items)
+            item = JSONSchema.instantiate(self.name + '/0', self.items, parent=self)
 
             # array object itself
-            array = JSONSchema.instantiate(self.name, self.attributes)
+            array = JSONSchema.instantiate(self.name, self.attributes, parent=self.parent)
             array.type = 'array[%s]' % item.get_typename()
             yield array
 
@@ -321,18 +335,18 @@ class Array(JSONData):
             types = []
             for i, item in enumerate(self.items):
                 name = '%s[%d]' % (self.name or '', i)
-                items.append(JSONSchema.instantiate(name, item))
+                items.append(JSONSchema.instantiate(name, item, parent=self))
                 types.append(items[-1].get_typename())
 
             if isinstance(self.additionalItems, dict):
                 name = '%s[%d+]' % (self.name or '', len(items))
-                additional = JSONSchema.instantiate(name, self.additionalItems)
+                additional = JSONSchema.instantiate(name, self.additionalItems, parent=self)
                 types.append(additional.get_typename() + '+')
             else:
                 additional = None
 
             # array object itself
-            array = JSONSchema.instantiate(self.name, self.attributes)
+            array = JSONSchema.instantiate(self.name, self.attributes, parent=self)
             array.type = 'array[%s]' % ','.join(types)
             yield array
 
@@ -394,13 +408,20 @@ class Object(JSONData):
         required = self.attributes.get('required', [])
 
         for name, attr in self.attributes.get('properties', {}).items():
-            yield JSONSchema.instantiate(prefix + name, attr, name in required)
+            yield JSONSchema.instantiate(prefix + name, attr, name in required, parent=self)
 
         for name, attr in self.attributes.get('patternProperties', {}).items():
-            yield JSONSchema.instantiate(prefix + name, attr)
+            yield JSONSchema.instantiate(prefix + name, attr, parent=self)
 
         if isinstance(self.additionalProperties, dict):
-            yield JSONSchema.instantiate(prefix + '*', attr)
+            yield JSONSchema.instantiate(prefix + '*', attr, parent=self)
+
+    @property
+    def full_title(self):
+        if isinstance(self.parent, Array):
+            return self.parent.full_title
+        else:
+            return super().full_title()
 
 
 def setup(app):
