@@ -35,18 +35,16 @@ class JSONSchemaDirective(Directive):
 
     headers = ['Title', 'Type', 'Description']
     widths = [1, 1, 2]
+    include = []
+    collapse = []
 
     def run(self):
         include = self.options.get('include')
         if include:
-            include = include.split(',')
-        else:
-            include = []
+            self.include = include.split(',')
         collapse = self.options.get('collapse')
         if collapse:
-            collapse = collapse.split(',')
-        else:
-            collapse = []
+            self.collapse = collapse.split(',')
 
         env = self.state.document.settings.env
         try:
@@ -66,7 +64,13 @@ class JSONSchemaDirective(Directive):
                 schema = JSONSchema.loadfromfile(''.join(self.content))
         except ValueError as exc:
             raise self.error('Failed to parse JSON Schema: %s' % exc)
+        
+        return self.make_nodes(schema)
 
+    def make_nodes(self, schema):
+        return [self.table(schema)]
+    
+    def table(self, schema):
         tgroup = nodes.tgroup(cols=len(self.headers))
         for width in self.widths:
             tgroup += nodes.colspec(colwidth=width)
@@ -81,13 +85,13 @@ class JSONSchemaDirective(Directive):
         tbody = nodes.tbody()
         tgroup += tbody
         for prop in schema:
-            if include and not prop.name.startswith(tuple(include)):
+            if self.include and not prop.name.startswith(tuple(self.include)):
                 continue
-            if prop.name.startswith(tuple(collapse)) and prop.name not in collapse:
+            if prop.name.startswith(tuple(self.collapse)) and prop.name not in self.collapse:
                 continue
             self.row(prop, tbody)
 
-        return [table]
+        return table
 
     def row(self, prop, tbody):
         row = nodes.row()
@@ -100,7 +104,7 @@ class JSONSchemaDirective(Directive):
         else:
             row += self.cell(prop.type)
         row += self.cell(prop.description or '')
-        return row
+        tbody += row
 
     def cell(self, text, morecols=0):
         entry = nodes.entry(morecols=morecols)
