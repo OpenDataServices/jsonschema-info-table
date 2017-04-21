@@ -31,6 +31,7 @@ class JSONSchemaDirective(Directive):
         'include': directives.unchanged,
         'collapse': directives.unchanged
     }
+    # Add a rollup option here
 
     headers = ['Title', 'Type', 'Description']
     widths = [1, 1, 2]
@@ -163,14 +164,14 @@ class JSONSchema(object):
             return cls.load(reader)
 
     @classmethod
-    def instantiate(cls, name, obj, required=False, parent=None):
-        return get_class_for(obj)(name, obj, required, parent)
+    def instantiate(cls, name, obj, required=False, parent=None, rollup=True):
+        return get_class_for(obj)(name, obj, required, parent, rollup)
 
 
 def Union(types):
     class Union(JSONData):
-        def __init__(self, name, attributes, required=False, parent=None):
-            super(Union, self).__init__(name, attributes, required, parent)
+        def __init__(self, name, attributes, required=False, parent=None, rollup=True):
+            super(Union, self).__init__(name, attributes, required, parent, rollup)
             self.elements = []
             for type in types:
                 elem = get_class_for(type)(name, attributes, required)
@@ -192,11 +193,12 @@ def Union(types):
 
 
 class JSONData(object):
-    def __init__(self, name, attributes, required=False, parent=None):
+    def __init__(self, name, attributes, required=False, parent=None, rollup=True):
         self.name = name
         self.attributes = attributes
         self.required = required
         self.parent = parent
+        self.rollup = rollup
 
     def __getattr__(self, name):
         if isinstance(self.attributes, dict):
@@ -408,7 +410,11 @@ class Object(JSONData):
         required = self.attributes.get('required', [])
 
         for name, attr in self.attributes.get('properties', {}).items():
-            yield JSONSchema.instantiate(prefix + name, attr, name in required, parent=self)
+            if isinstance(self.parent, Array):
+                rollup = name in self.parent.attributes.get('rollUp', [])
+            else:
+                rollup = True
+            yield JSONSchema.instantiate(prefix + name, attr, name in required, parent=self, rollup=rollup)
 
         for name, attr in self.attributes.get('patternProperties', {}).items():
             yield JSONSchema.instantiate(prefix + name, attr, parent=self)
