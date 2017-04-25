@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import jsonref
+from jsonpointer import resolve_pointer
 from six import string_types
 from docutils import nodes
 from docutils.statemachine import ViewList
@@ -29,7 +30,8 @@ class JSONSchemaDirective(Directive):
     required_arguments = 1
     option_spec = {
         'include': directives.unchanged,
-        'collapse': directives.unchanged
+        'collapse': directives.unchanged,
+        'pointer': directives.unchanged,
     }
     # Add a rollup option here
 
@@ -64,6 +66,9 @@ class JSONSchemaDirective(Directive):
                 schema = JSONSchema.loadfromfile(''.join(self.content))
         except ValueError as exc:
             raise self.error('Failed to parse JSON Schema: %s' % exc)
+
+        if self.options.get('pointer'):
+            schema = JSONSchema.instantiate(None, resolve_pointer(schema.attributes, self.options.get('pointer')))
         
         return self.make_nodes(schema)
 
