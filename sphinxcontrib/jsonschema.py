@@ -206,6 +206,9 @@ class JSONData(object):
 
     def __getattr__(self, name):
         if isinstance(self.attributes, dict):
+            if hasattr(self.attributes, '__reference__'):
+                if name in self.attributes.__reference__:
+                    return self.attributes.__reference__[name]
             return self.attributes.get(name)
         else:
             return None
