@@ -108,7 +108,19 @@ class JSONSchemaDirective(Directive):
             row += self.cell(prop.type + " (required)")
         else:
             row += self.cell(prop.type)
-        row += self.cell(prop.description or '')
+        if prop.description:
+            extra = ''
+            cell = self.cell(prop.description)
+            if hasattr(prop.attributes, '__reference__'):
+                ref = prop.attributes.__reference__['$ref']
+                reference = nodes.reference('', '',
+                    nodes.Text(ref),
+                    internal=False,
+                    refuri=ref, anchorname='')
+                cell += nodes.paragraph('', nodes.Text('\n\nSee '), reference)
+            row += cell
+        else:
+            row += self.cell('')
         tbody += row
 
     def cell(self, text, morecols=0):
