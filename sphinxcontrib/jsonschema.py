@@ -36,8 +36,8 @@ class JSONSchemaDirective(Directive):
     }
     # Add a rollup option here
 
-    headers = ['Title', 'Type', 'Description']
-    widths = [1, 1, 2]
+    headers = ['Title', 'Description', 'Type', 'Validation']
+    widths = [1, 1, 1, 1]
     include = []
     collapse = []
 
@@ -101,16 +101,17 @@ class JSONSchemaDirective(Directive):
 
     def row(self, prop, tbody):
         row = nodes.row()
-        row += self.cell(prop.name, morecols=2)
+        row += self.cell(prop.name, morecols=1)
+        row += self.cell(prop.type)
+        if prop.required:
+            row += self.cell("required; " + '; '.join(prop.validations))
+        else:
+            row += self.cell('; '.join(prop.validations))
         tbody += row
         row = nodes.row()
         row += self.cell(prop.title)
-        if prop.required:
-            row += self.cell(prop.type + " (required)")
-        else:
-            row += self.cell(prop.type)
         if prop.description:
-            cell = self.cell(prop.description)
+            cell = self.cell(prop.description or '', morecols=2)
             if 'nocrossref' not in self.options:
                 ref = None
                 if hasattr(prop.attributes, '__reference__'):
@@ -124,8 +125,6 @@ class JSONSchemaDirective(Directive):
                         refuri=ref, anchorname='')
                     cell += nodes.paragraph('', nodes.Text('\n\nSee '), reference)
             row += cell
-        else:
-            row += self.cell('')
         tbody += row
 
     def cell(self, text, morecols=0):
