@@ -32,6 +32,7 @@ class JSONSchemaDirective(Directive):
         'include': directives.unchanged,
         'collapse': directives.unchanged,
         'pointer': directives.unchanged,
+        'nocrossref': directives.flag,
     }
     # Add a rollup option here
 
@@ -109,19 +110,19 @@ class JSONSchemaDirective(Directive):
         else:
             row += self.cell(prop.type)
         if prop.description:
-            extra = ''
             cell = self.cell(prop.description)
-            ref = None
-            if hasattr(prop.attributes, '__reference__'):
-                ref = prop.attributes.__reference__['$ref']
-            elif hasattr(prop.items, '__reference__'):
-                ref = prop.items.__reference__['$ref']
-            if ref:
-                reference = nodes.reference('', '',
-                    nodes.Text(ref),
-                    internal=False,
-                    refuri=ref, anchorname='')
-                cell += nodes.paragraph('', nodes.Text('\n\nSee '), reference)
+            if 'nocrossref' not in self.options:
+                ref = None
+                if hasattr(prop.attributes, '__reference__'):
+                    ref = prop.attributes.__reference__['$ref']
+                elif hasattr(prop.items, '__reference__'):
+                    ref = prop.items.__reference__['$ref']
+                if ref:
+                    reference = nodes.reference('', '',
+                        nodes.Text(ref),
+                        internal=False,
+                        refuri=ref, anchorname='')
+                    cell += nodes.paragraph('', nodes.Text('\n\nSee '), reference)
             row += cell
         else:
             row += self.cell('')
