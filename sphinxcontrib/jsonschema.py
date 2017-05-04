@@ -111,8 +111,12 @@ class JSONSchemaDirective(Directive):
         if prop.description:
             extra = ''
             cell = self.cell(prop.description)
+            ref = None
             if hasattr(prop.attributes, '__reference__'):
                 ref = prop.attributes.__reference__['$ref']
+            elif hasattr(prop.items, '__reference__'):
+                ref = prop.items.__reference__['$ref']
+            if ref:
                 reference = nodes.reference('', '',
                     nodes.Text(ref),
                     internal=False,
