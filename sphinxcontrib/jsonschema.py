@@ -36,8 +36,8 @@ class JSONSchemaDirective(Directive):
     }
     # Add a rollup option here
 
-    headers = ['Title', 'Description', 'Type', 'Validation']
-    widths = [1, 1, 1, 1]
+    headers = ['Title', 'Description', 'Type', 'Format', 'Required']
+    widths = [1, 1, 1, 1, 1]
     include = []
     collapse = []
 
@@ -95,23 +95,27 @@ class JSONSchemaDirective(Directive):
                 continue
             if prop.name.startswith(tuple(self.collapse)) and prop.name not in self.collapse:
                 continue
+            if '^' in prop.name:
+                # Skip patternProperties
+                # Do this here to increase chances of upstreaming code changes
+                # outside of the directive
+                continue
             self.row(prop, tbody)
 
         return table
 
     def row(self, prop, tbody):
         row = nodes.row()
-        row += self.cell(prop.name, morecols=1)
+        cell = nodes.entry('', nodes.literal('', nodes.Text(prop.name)), morecols=1)
+        row += cell
         row += self.cell(prop.type)
-        if prop.required:
-            row += self.cell("required; " + '; '.join(prop.validations))
-        else:
-            row += self.cell('; '.join(prop.validations))
+        row += self.cell(prop.format or '')
+        row += self.cell('Required' if prop.required else '')
         tbody += row
         row = nodes.row()
         row += self.cell(prop.title)
         if prop.description:
-            cell = self.cell(prop.description or '', morecols=2)
+            cell = self.cell(prop.description or '', morecols=3)
             if 'nocrossref' not in self.options:
                 ref = None
                 if hasattr(prop.attributes, '__reference__'):
@@ -126,6 +130,13 @@ class JSONSchemaDirective(Directive):
                         internal=False,
                         refuri='#'+ref.lower(), anchorname='')
                     cell += nodes.paragraph('', nodes.Text('\n\nSee '), reference)
+                if prop.deprecated:
+                    cell += nodes.paragraph('',
+                        nodes.Text('This property was deprecated in version {}'.format(prop.deprecated['deprecatedVersion'])),
+                    )
+                    cell += nodes.paragraph('',
+                        nodes.Text(prop.deprecated['description']),
+                    )
             row += cell
         tbody += row
 
