@@ -119,10 +119,12 @@ class JSONSchemaDirective(Directive):
                 elif hasattr(prop.items, '__reference__'):
                     ref = prop.items.__reference__['$ref']
                 if ref:
+                    # just use the name at the end of the ref
+                    ref = ref.split('/')[-1]
                     reference = nodes.reference('', '',
                         nodes.Text(ref),
                         internal=False,
-                        refuri=ref, anchorname='')
+                        refuri='#'+ref.lower(), anchorname='')
                     cell += nodes.paragraph('', nodes.Text('\n\nSee '), reference)
             row += cell
         tbody += row
