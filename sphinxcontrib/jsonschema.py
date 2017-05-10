@@ -84,8 +84,7 @@ class JSONSchemaDirective(Directive):
         table = nodes.table('', tgroup)
         header_row = nodes.row()
         for header in self.headers:
-            entry = nodes.entry('', nodes.paragraph(text=header))
-            header_row += entry
+            header_row += self.cell(header, source='sphinxcontrib-jsonschema')
 
         tgroup += nodes.thead('', header_row)
         tbody = nodes.tbody()
@@ -140,13 +139,13 @@ class JSONSchemaDirective(Directive):
             row += cell
         tbody += row
 
-    def cell(self, text, morecols=0):
+    def cell(self, text, morecols=0, source=None):
         entry = nodes.entry(morecols=morecols)
         if not isinstance(text, string_types):
             text = str(text)
         # Regex to replace markdown links for reStructuredText ones
         text = re.sub(r'\[([^\[]+)\]\(([^\)]+)\)', r'`\1 <\2>`__', text)
-        viewlist = ViewList(text.split('\n'), source=text)
+        viewlist = ViewList(text.split('\n'), source=source)
         self.state.nested_parse(viewlist, 0, entry)
         return entry
 
