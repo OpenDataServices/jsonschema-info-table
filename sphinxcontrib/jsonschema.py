@@ -236,7 +236,7 @@ def Union(types):
 
 class JSONData(object):
     def __init__(self, name, attributes, required=False, parent=None, rollup=True):
-        self.name = name
+        self.name = name or ''
         self.attributes = attributes
         self.required = required
         self.parent = parent
