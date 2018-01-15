@@ -16,6 +16,7 @@ from six import string_types
 from docutils import nodes
 from docutils.statemachine import ViewList
 from docutils.parsers.rst import directives, Directive
+from docutils.utils import SystemMessage
 
 if sys.version_info < (2, 7):
     import simplejson as json
@@ -45,6 +46,7 @@ class JSONSchemaDirective(Directive):
     widths = [1, 1, 1, 1, 1]
     include = []
     collapse = []
+    collapse_used = set()
 
     def run(self):
         include = self.options.get('include')
@@ -79,7 +81,13 @@ class JSONSchemaDirective(Directive):
         return self.make_nodes(schema)
 
     def make_nodes(self, schema):
-        return [self.table(schema)]
+        table = self.table(schema)
+        collapse_unused = set(self.collapse) - self.collapse_used
+        if collapse_unused:
+            msg = 'Collapse values don\'t exist: {}'.format(collapse_unused)
+            return [self.state.document.reporter.warning(msg), table]
+        else:
+            return [table]
     
     def table(self, schema):
         tgroup = nodes.tgroup(cols=len(self.headers))
@@ -97,8 +105,11 @@ class JSONSchemaDirective(Directive):
         for prop in schema:
             if self.include and not prop.name.startswith(tuple(self.include)):
                 continue
-            if prop.name.startswith(tuple(self.collapse)) and prop.name not in self.collapse:
-                continue
+            if prop.name.startswith(tuple(self.collapse)):
+                if prop.name in self.collapse:
+                    self.collapse_used.add(prop.name)
+                else:
+                    continue
             if '^' in prop.name:
                 # Skip patternProperties
                 # Do this here to increase chances of upstreaming code changes
