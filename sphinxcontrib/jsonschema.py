@@ -121,7 +121,11 @@ class JSONSchemaDirective(Directive):
 
     def row(self, prop, tbody):
         row = nodes.row()
-        cell = nodes.entry('', nodes.target(ids=[prop.name], names=[prop.name]), nodes.literal('', nodes.Text(prop.name)), morecols=1)
+        anchor = '{},{},{}'.format(
+            self.arguments[0].split('/')[-1],
+            self.options.get('pointer', ''),
+            prop.name)
+        cell = nodes.entry('', nodes.target(ids=[anchor], names=[anchor]), nodes.literal('', nodes.Text(prop.name)), morecols=1)
         row += cell
         row += self.cell(prop.type)
         row += self.cell(prop.format or '')
