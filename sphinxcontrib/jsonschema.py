@@ -164,7 +164,7 @@ class JSONSchemaDirective(Directive):
         if not isinstance(text, string_types):
             text = str(text)
         # Regex to replace markdown links for reStructuredText ones
-        text = re.sub(r'\[([^\[]+)\]\(([^\)]+)\)', r'`\1 <\2>`__', text)
+        text = re.sub(r'\[([^\]]+)\]\(([^\)]+)\)', r'`\1 <\2>`__', text)
         viewlist = ViewList(text.split('\n'), source=source)
         self.state.nested_parse(viewlist, 0, entry)
         return entry
