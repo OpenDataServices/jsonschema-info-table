@@ -8,15 +8,14 @@
 """
 import io
 import os
-import re
 import sys
 import jsonref
 from jsonpointer import resolve_pointer
 from six import string_types
 from docutils import nodes
-from docutils.statemachine import ViewList
 from docutils.parsers.rst import directives, Directive
-from docutils.utils import SystemMessage
+from docutils.utils import new_document
+from recommonmark.parser import CommonMarkParser
 
 if sys.version_info < (2, 7):
     import simplejson as json
@@ -77,7 +76,7 @@ class JSONSchemaDirective(Directive):
 
         if self.options.get('pointer'):
             schema = JSONSchema.instantiate(None, resolve_pointer(schema.attributes, self.options.get('pointer')))
-        
+
         return self.make_nodes(schema)
 
     def make_nodes(self, schema):
@@ -88,7 +87,7 @@ class JSONSchemaDirective(Directive):
             return [self.state.document.reporter.warning(msg), table]
         else:
             return [table]
-    
+
     def table(self, schema):
         tgroup = nodes.tgroup(cols=len(self.headers))
         for width in self.widths:
@@ -125,7 +124,8 @@ class JSONSchemaDirective(Directive):
             self.arguments[0].split('/')[-1],
             self.options.get('pointer', ''),
             prop.name)
-        cell = nodes.entry('', nodes.target(ids=[anchor], names=[anchor]), nodes.literal('', nodes.Text(prop.name)), morecols=1)
+        cell = nodes.entry('', nodes.target(ids=[anchor], names=[anchor]), nodes.literal('', nodes.Text(prop.name)),
+                           morecols=1)
         row += cell
         row += self.cell(prop.type)
         row += self.cell(prop.format or '')
@@ -144,18 +144,13 @@ class JSONSchemaDirective(Directive):
                 if ref:
                     # just use the name at the end of the ref
                     ref = ref.split('/')[-1]
-                    reference = nodes.reference('', '',
-                        nodes.Text(ref),
-                        internal=False,
-                        refuri='#'+ref.lower(), anchorname='')
+                    reference = nodes.reference('', '', nodes.Text(ref), internal=False, refuri='#' + ref.lower(),
+                                                anchorname='')
                     cell += nodes.paragraph('', nodes.Text('\n\nSee '), reference)
                 if prop.deprecated:
-                    cell += nodes.paragraph('',
-                        nodes.Text('This property was deprecated in version {}'.format(prop.deprecated['deprecatedVersion'])),
-                    )
-                    cell += nodes.paragraph('',
-                        nodes.Text(prop.deprecated['description']),
-                    )
+                    cell += nodes.paragraph('', nodes.Text('This property was deprecated in version {}'
+                                                           .format(prop.deprecated['deprecatedVersion'])))
+                    cell += nodes.paragraph('', nodes.Text(prop.deprecated['description']))
             row += cell
         tbody += row
 
@@ -163,10 +158,14 @@ class JSONSchemaDirective(Directive):
         entry = nodes.entry(morecols=morecols)
         if not isinstance(text, string_types):
             text = str(text)
-        # Regex to replace markdown links for reStructuredText ones
-        text = re.sub(r'\[([^\]]+)\]\(([^\)]+)\)', r'`\1 <\2>`__', text)
-        viewlist = ViewList(text.split('\n'), source=source)
-        self.state.nested_parse(viewlist, 0, entry)
+
+        parser = CommonMarkParser()
+        new_doc = new_document(None)
+        parser.parse(text, new_doc)
+
+        for child in new_doc.children[:]:
+            child.source = source
+            entry += child
         return entry
 
 
@@ -356,6 +355,7 @@ class String(JSONData):
         if 'format' in self.attributes:
             rules.append('It must be formatted as %s' % self.format)
         return rules
+
 
 class Array(JSONData):
     type = "array"
