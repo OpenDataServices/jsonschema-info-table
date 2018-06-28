@@ -44,6 +44,7 @@ class JSONSchemaDirective(Directive):
     headers = ['Title', 'Description', 'Type', 'Format', 'Required']
     widths = [1, 1, 1, 1, 1]
     include = []
+    include_used = set()
     collapse = []
     collapse_used = set()
 
@@ -81,9 +82,13 @@ class JSONSchemaDirective(Directive):
 
     def make_nodes(self, schema):
         table = self.table(schema)
+        include_unused = set(self.include) - self.include_used
         collapse_unused = set(self.collapse) - self.collapse_used
-        if collapse_unused:
-            msg = 'Collapse values don\'t exist: {}'.format(collapse_unused)
+        if include_unused:
+            msg = "Include values don't exist: {}".format(include_unused)
+            return [self.state.document.reporter.warning(msg), table]
+        elif collapse_unused:
+            msg = "Collapse values don't exist: {}".format(collapse_unused)
             return [self.state.document.reporter.warning(msg), table]
         else:
             return [table]
@@ -102,8 +107,12 @@ class JSONSchemaDirective(Directive):
         tbody = nodes.tbody()
         tgroup += tbody
         for prop in schema:
-            if self.include and not prop.name.startswith(tuple(self.include)):
-                continue
+            if self.include:
+                if prop.name.startswith(tuple(self.include)):
+                    if prop.name in self.include:
+                        self.include_used.add(prop.name)
+                else:
+                    continue
             if prop.name.startswith(tuple(self.collapse)):
                 if prop.name in self.collapse:
                     self.collapse_used.add(prop.name)
