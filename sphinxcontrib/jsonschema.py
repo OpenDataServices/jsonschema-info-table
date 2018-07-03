@@ -242,6 +242,11 @@ def Union(types):
                 elem = get_class_for(type)(name, attributes, required)
                 self.elements.append(elem)
 
+        def __iter__(self):
+            for elem in self.elements:
+                for item in elem:
+                    yield item
+
         @property
         def type(self):
             return '[%s]' % ', '.join(types)
@@ -389,11 +394,13 @@ class Array(JSONData):
         return rules
 
     def __iter__(self):
-        if isinstance(self.items, dict):
+        if self.items is None:
+            return
+        elif isinstance(self.items, dict):
             item = JSONSchema.instantiate(self.name + '/0', self.items, parent=self)
 
             # array object itself
-            array = JSONSchema.instantiate(self.name, self.attributes, parent=self.parent)
+            array = Array(self.name, self.attributes, parent=self.parent)
             array.type = 'array[%s]' % item.get_typename()
             yield array
 
@@ -417,7 +424,7 @@ class Array(JSONData):
                 additional = None
 
             # array object itself
-            array = JSONSchema.instantiate(self.name, self.attributes, parent=self)
+            array = Array(self.name, self.attributes, parent=self)
             array.type = 'array[%s]' % ','.join(types)
             yield array
 
@@ -467,9 +474,8 @@ class Object(JSONData):
             if prop.type != 'array':
                 yield prop
 
-            if prop.type in ["object", "array"]:
-                for subprop in prop:
-                    yield subprop
+            for subprop in prop:
+                yield subprop
 
     def get_properties(self):
         if self.name:
