@@ -84,14 +84,14 @@ class JSONSchemaDirective(Directive):
         table = self.table(schema)
         include_unused = set(self.include) - self.include_used
         collapse_unused = set(self.collapse) - self.collapse_used
+        nodes = [table]
+        if collapse_unused:
+            msg = "Collapse values don't exist: {}".format(collapse_unused)
+            nodes.insert(0, self.state.document.reporter.warning(msg))
         if include_unused:
             msg = "Include values don't exist: {}".format(include_unused)
-            return [self.state.document.reporter.warning(msg), table]
-        elif collapse_unused:
-            msg = "Collapse values don't exist: {}".format(collapse_unused)
-            return [self.state.document.reporter.warning(msg), table]
-        else:
-            return [table]
+            nodes.insert(0, self.state.document.reporter.warning(msg))
+        return nodes
 
     def table(self, schema):
         tgroup = nodes.tgroup(cols=len(self.headers))
