@@ -1,10 +1,9 @@
 sudo: false
 language: python
 python:
-  - "2.7"
-  - "3.4"
   - "3.5"
   - "3.6"
+  - "3.7-dev"
   - "nightly"
 install: pip install docutils==0.12 tox tox-travis
 script: tox

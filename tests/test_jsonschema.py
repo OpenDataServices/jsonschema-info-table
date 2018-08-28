@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import json
 from shutil import rmtree
 from tempfile import mkdtemp, NamedTemporaryFile
-from sphinxcontrib.jsonschema import JSONSchema
-
-if sys.version_info < (2, 7):
-    import unittest2 as unittest
-else:
-    import unittest
+from jsonschemainfotable.jsonschema import JSONSchema
+import unittest
 
 
 class TestJsonSchema(unittest.TestCase):

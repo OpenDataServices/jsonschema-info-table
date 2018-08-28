@@ -1,1 +1,1 @@
-.. jsonschema:: subdir/test.json
+.. jsonschemainfotable:: subdir/test.json

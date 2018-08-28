@@ -2,23 +2,25 @@
 
 from setuptools import setup, find_packages
 
-long_desc = open('README.rst').read()
+long_desc = open('README.md').read()
+
+# Sphinx >= 0.6 in not in requires, as it will be possible to use this without Sphinx.
 
 requires = [
-    'Sphinx>=0.6',
     'jsonref',
     'jsonpointer',
     'recommonmark',
 ]
 
 setup(
-    name='sphinxcontrib-jsonschema',
-    version='0.9.3',
-    url='https://github.com/tk0miya/sphinxcontrib-jsonschema',
+    name='jsonschema-info-table',
+    version='0.0.0',
+    url='https://github.com/OpenDataServices/jsonschema-info-table',
     license='BSD',
-    author='Takeshi KOMIYA',
-    author_email='i.tkomiya@gmail.com',
-    description='Sphinx extension to define data structure using JSON Schema',
+    maintainer='Open Data Services Coop',
+    maintainer_email='code@opendataservices.coop',
+    description='Takes JSON Schema and presents human readable information about it as a table. ' +
+                'Includes Sphinx extension.',
     long_description=long_desc,
     zip_safe=False,
     classifiers=[
@@ -29,12 +31,10 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Documentation',
         'Topic :: Documentation :: Sphinx',
     ],
@@ -42,5 +42,5 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=requires,
-    namespace_packages=['sphinxcontrib'],
+    namespace_packages=['jsonschemainfotable'],
 )

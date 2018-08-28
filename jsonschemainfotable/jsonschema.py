@@ -8,7 +8,6 @@
 """
 import io
 import os
-import sys
 import jsonref
 from jsonpointer import resolve_pointer
 from six import string_types
@@ -16,13 +15,8 @@ from docutils import nodes
 from docutils.parsers.rst import directives, Directive
 from docutils.utils import new_document
 from recommonmark.parser import CommonMarkParser
-
-if sys.version_info < (2, 7):
-    import simplejson as json
-    from ordereddict import OrderedDict
-else:
-    import json
-    from collections import OrderedDict
+import json
+from collections import OrderedDict
 
 
 class CustomJsonrefLoader(jsonref.JsonLoader):
@@ -506,4 +500,4 @@ class Object(JSONData):
 
 
 def setup(app):
-    app.add_directive('jsonschema', JSONSchemaDirective)
+    app.add_directive('jsonschemainfotable', JSONSchemaDirective)

@@ -1,2 +1,2 @@
 master_doc = 'index'
-extensions = ['sphinxcontrib.jsonschema']
+extensions = ['jsonschemainfotable.jsonschema']
