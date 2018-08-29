@@ -1,7 +1,7 @@
 from jsonschemainfotable.jsonschema import JSONSchemaDirective
 
 
-def render_html_from_filename(filename, options = {}):
+def render_html_from_filename(filename, options={}):
 
     jsonschemadirective = JSONSchemaDirective(
         name='',
@@ -17,7 +17,12 @@ def render_html_from_filename(filename, options = {}):
 
     result = jsonschemadirective.run()
 
-    # TODO turn this objects into actual HTML!
+    # From https://stackoverflow.com/questions/32167384/how-do-i-convert-a-docutils-document-tree-into-an-html-string
+    # but I couldn't get it to work  .....
+    # from docutils.core import  publish_from_doctree
+    # html = publish_from_doctree(result[0], writer_name='html').decode()
 
-    return result
+    # so I just did this instead - which I don't like as it assumes html rather than specifies it but it seems to work!
+    html = str(result[0])
 
+    return html
