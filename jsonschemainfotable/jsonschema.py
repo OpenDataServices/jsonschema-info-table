@@ -50,11 +50,11 @@ class JSONSchemaDirective(Directive):
         if collapse:
             self.collapse = collapse.split(',')
 
-        env = self.state.document.settings.env
         try:
             if self.arguments and self.content:
                 raise self.warning('both argument and content. it is invalid')
             if self.arguments:
+                env = self.state.document.settings.env
                 dirname = os.path.dirname(env.doc2path(env.docname, base=None))
                 relpath = os.path.join(dirname, self.arguments[0])
                 abspath = os.path.join(env.srcdir, relpath)
@@ -124,7 +124,7 @@ class JSONSchemaDirective(Directive):
     def row(self, prop, tbody):
         row = nodes.row()
         anchor = '{},{},{}'.format(
-            self.arguments[0].split('/')[-1],
+            self.arguments[0].split('/')[-1] if self.arguments else '',
             self.options.get('pointer', ''),
             prop.name)
         cell = nodes.entry('', nodes.target(ids=[anchor], names=[anchor]), nodes.literal('', nodes.Text(prop.name)),
